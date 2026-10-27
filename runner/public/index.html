@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promptfoo · 评估控制台</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Promptfoo 控制台首页"><span class="brand-icon">p<span>f</span></span><strong>promptfoo</strong><span class="brand-divider"></span><span>评估控制台</span></a>
+    <span class="local-badge"><i></i> 本地运行</span>
+  </header>
+  <main>
+    <div class="heading"><div><div class="eyebrow">EVALUATION WORKSPACE</div><h1>让测试，随时开始。</h1><p>载入脚本，配置执行。一处管理你的 Promptfoo 评估。</p></div><div class="environment"><span id="runtime-dot" class="dot"></span><div><strong id="runtime">正在检查环境…</strong><small id="runtime-sub">连接本地服务</small></div></div></div>
+    <div id="notice" role="alert" hidden></div>
+    <div class="workspace">
+      <form id="form" class="config-panel">
+        <div class="panel-title"><h2>运行配置</h2><span class="small-label">CONFIGURATION</span></div>
+        <fieldset id="config-fields">
+          <section class="step">
+            <div class="section-heading"><span class="step-number">01</span><h3>载入攻击脚本</h3><span class="tag">YAML</span></div>
+            <label for="config-select">项目中的脚本</label>
+            <select id="config-select"><option value="">选择 YAML 文件</option></select>
+            <div class="path-row"><input id="config-path" aria-label="YAML 脚本路径" placeholder="或输入 YAML 的本地路径" required><button type="button" id="load-config" class="button secondary">载入</button></div>
+            <button type="button" id="upload-button" class="upload"><span class="upload-icon">↥</span><span><strong>从电脑选择 YAML 文件</strong><small>支持 .yaml / .yml，最大 2 MB</small></span><span class="upload-plus">＋</span></button>
+            <input type="file" id="upload-file" accept=".yaml,.yml" hidden>
+            <p class="hint">项目脚本保留原始路径；上传文件存入 test_set，请确认相对引用。</p>
+            <div id="target-editor">
+              <div class="target-toolbar"><h3>目标配置</h3><span class="tag" id="target-status" aria-live="polite">等待载入文件</span></div>
+              <div class="target-actions"><button type="button" id="restore-targets" class="button secondary" disabled>恢复默认（文件）</button><button type="button" id="personal-targets" class="button secondary" disabled>覆盖配置（我的）</button></div>
+              <p class="hint" id="target-base"></p>
+              <div id="target-cards"></div>
+              <div class="target-actions"><button type="button" id="add-target" class="button secondary" disabled>＋ 添加目标</button><button type="button" id="confirm-targets" class="button primary" disabled>确定目标配置</button></div>
+              <p class="hint">编辑、恢复或覆盖仅修改表单；点击「确定目标配置」后才用于运行。原始 YAML 不会修改。</p>
+            </div>
+            <details id="yaml-details"><summary><span id="yaml-caption">查看脚本内容</span> <span id="yaml-size"></span></summary><pre id="yaml-preview">选择脚本后显示内容</pre></details>
+          </section>
+          <section class="step">
+            <div class="section-heading"><span class="step-number">02</span><h3>结果与重复次数</h3></div>
+            <label for="output">结果输出路径</label>
+            <input id="output" value="results/input-tests.json" placeholder="results/input-tests.json" required>
+            <p class="hint">支持相对项目路径或绝对路径，自动创建文件夹。</p>
+            <div class="repeat-row"><div><label for="repeats">重复次数</label><p class="hint">传入 --repeat，每个测试用例重复执行</p></div><div class="stepper"><button type="button" id="minus" aria-label="减少一次">−</button><input id="repeats" type="number" min="1" max="1000" value="1" required><button type="button" id="plus" aria-label="增加一次">＋</button></div></div>
+            <div class="output-note" id="output-note">结果保存为 input-tests.json。同名 JSON 按评估追加，已有结果会保留。</div>
+          </section>
+          <section class="step last-step">
+            <div class="section-heading"><span class="step-number">03</span><h3>执行参数</h3><span class="tag green">已设默认值</span></div>
+            <div class="parameter-grid"><label for="concurrency">最大并发数<input id="concurrency" type="number" min="1" max="100" value="1" required></label><label for="delay">请求间隔 <span class="unit">ms</span><input id="delay" type="number" min="0" max="3600000" step="1" value="1000" required></label></div>
+            <div class="fixed-options"><span>✓ 禁用缓存 <code>--no-cache</code></span><span>✓ 禁止分享 <code>--no-share</code></span></div>
+          </section>
+        </fieldset>
+        <div class="form-footer"><button id="start" class="button primary" type="submit"><span>▶</span> 开始评估</button><p>所有命令均在本机执行</p></div>
+      </form>
+      <div class="execution-panel">
+        <section class="command-panel"><div class="panel-title"><h2><span class="terminal-icon">›_</span> 命令预览</h2><button class="text-button" id="copy" type="button">复制命令 ↗</button></div><pre id="command">正在生成命令…</pre><div class="command-footer"><span id="command-rounds">单次评估 · --repeat 1</span><span>参数自动同步</span></div></section>
+        <section class="run-panel"><div class="panel-title"><h2>执行状态 <span id="status" class="status">准备就绪</span></h2><button id="stop" type="button" class="text-button danger" disabled>■ 停止运行</button></div><div class="metrics"><div><small>重复次数</small><strong id="round">1 <span>次</span></strong></div><div><small>已完成评估</small><strong id="completed">0 <span>次</span></strong></div><div><small>运行时长</small><strong id="elapsed">00:00</strong></div></div><progress id="progress" max="1" value="0" aria-label="评估执行状态"></progress><div class="log-heading"><span><i class="dot" id="log-dot"></i> 实时日志</span><label><input type="checkbox" id="autoscroll" checked> 自动滚动</label></div><div class="log-wrap"><div id="empty-state"><div class="empty-symbol">›_</div><strong>等待开始评估</strong><p>选择 YAML 脚本并点击「开始评估」<br>运行日志将在这里实时显示</p></div><pre id="logs" aria-label="执行日志" hidden></pre></div><div class="log-footer"><span id="log-info">日志仅保留在本次服务会话中</span><span>LOCAL PROCESS</span></div></section>
+        <section class="results-panel"><div class="panel-title"><h2>本次测试输出</h2><span id="output-count" class="small-label">0 条记录</span></div><p id="output-eval" class="output-eval" hidden></p><div id="test-outputs"><p class="results-empty">评估完成后，这里会显示本次每条测试记录的 output。</p></div><details class="result-downloads"><summary>结果文件与下载 <span id="result-count">0 个文件</span></summary><div id="results"><p class="results-empty">尚未生成结果文件。</p></div></details></section>
+      </div>
+    </div>
+    <footer class="page-footer"><span>工作目录 <code id="root">…</code></span><span>Promptfoo Runner <span class="footer-dot">·</span> 本地控制台</span></footer>
+  </main>
+</body>
+</html>

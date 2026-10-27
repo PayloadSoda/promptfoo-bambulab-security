@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "node runner/server.mjs",
+    "test:runner": "node --test runner/test/*.test.mjs"
+  },
+  "dependencies": {
+    "undici": "^8.11.2",
+    "yaml": "^2.9.1"
+  }
+}
